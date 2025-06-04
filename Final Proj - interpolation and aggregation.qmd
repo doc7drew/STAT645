@@ -120,6 +120,9 @@ hourly_aggregated
 New Data Sets
 
 ```{r}
+site1 <- hourly_aggregated |>
+  filter(site_id == 1)
+
 # Hourly (no change)
 site1_hourly <- site1
 
