@@ -166,6 +166,7 @@ site1_yearly |>
   autoplot(mean_kW) 
 
 
+
 site1_hourly |>
   gg_season(kW, period = "day") +
   labs(title = "Hourly kW Usage Patterns",
@@ -188,12 +189,6 @@ site1_hourly |>
   gg_season(kW, period = "year") +
   labs(title = "Hourly kW Usage Patterns",
        y = "kW",
-       x = "Month of Year")
-
-site1_daily |>
-  gg_season(mean_kW) +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
-       y = "Mean Daily kW",
        x = "Month of Year")
 
 site1_daily |>
@@ -227,4 +222,13 @@ site1_monthly |>
   labs(title = "Seasonal Plot of Monthy kW Usage (by Week)",
        y = "Mean Daily kW",
        x = "Month of year")
+
+site1_daily |>
+  gg_subseries(mean_kW)
+site1_weekly |>
+  gg_subseries(mean_kW)
+site1_monthly |>
+  gg_subseries(mean_kW)
+site1_yearly |>
+  gg_subseries(mean_kW)
 ```
