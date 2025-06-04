@@ -1,0 +1,238 @@
+---
+title: "Hourly kW Forecasting"
+format: html
+editor: visual
+---
+
+```{r}
+library(fpp3)
+library(zoo)
+
+```
+
+#### Load data
+
+```{r}
+#five_min <- read.csv("/Users/andypike/Downloads/Drexel/STAT 645 - Time Series Forecasting/STAT_645_5_min_data.csv")
+five_min <- read.csv("C:\\Users\\a-rei\\OneDrive\\Grad school\\Drexel\\3 - SP 2025\\STAT 645 - Time Series Forecasting\\Final\\STAT_645_5_min_data.csv")
+
+five_min <- five_min |> 
+  mutate(interval_utc = ymd_hms(interval_utc, tz = "UTC")) |> 
+  as_tsibble(
+    key = site_id,
+    index = interval_utc
+  )
+
+five_min
+key_vars(five_min)
+index_var(five_min)
+
+```
+
+#### Drop kW in intervals with Demand Response
+
+```{r}
+five_min_filled <- five_min |> mutate(kW = if_else(DR_influenced == 1, NA_real_, kW))
+```
+
+#### Fill missing kW intervals with linear interpolation
+
+```{r}
+five_min_filled <- five_min_filled %>%
+  group_by(site_id) %>%
+  mutate(kW = na.approx(kW, x = interval_utc, na.rm = FALSE)) %>%
+  ungroup()
+```
+
+#### Label interpolated values
+
+```{r}
+#flag affected data
+five_min_filled <- five_min_filled %>%
+  mutate(
+    interp_label = case_when(
+      DR_influenced == 1 ~ 1,
+      kW_is_null == 1 ~ 2,
+      TRUE ~ 3
+    )
+  )
+```
+
+#### Visualize interpolation
+
+```{r}
+site_dates <- five_min_filled |> 
+  filter(kW_is_null == 1 | DR_influenced == 1) |> 
+  mutate(date = as_date(interval_utc)) |> 
+  distinct(site_id, date)
+
+# Loop through each site-date and plot
+for (i in seq_len(nrow(site_dates))) {
+  site_i <- site_dates$site_id[i]
+  date_i <- site_dates$date[i]
+
+  # Define datetime window
+  start_time <- ymd_hms(paste0(date_i, " 00:00:00"), tz = "UTC")
+  end_time   <- start_time + days(1)
+
+  # Filter for just this day and site
+  filtered_day <- five_min_filled %>%
+    filter(site_id == site_i, interval_utc >= start_time, interval_utc < end_time)
+
+  # Build plot
+p <- ggplot(filtered_day, aes(x = interval_utc, y = kW, color = interp_label)) +
+  geom_line(linewidth = 1) +
+  scale_color_gradientn(colors = c("red", "purple", "steelblue")) +
+  labs(
+    title = paste("Site", site_i, ": kW Consumption on", date_i,". Interpolated intervals highlighted."),
+    x = "Time",
+    y = "kW"
+  ) + theme(legend.position = "none")
+
+  print(p)
+}
+
+```
+
+#### Aggregate by Hour
+
+```{r}
+hourly_aggregated <- five_min_filled %>%
+  as_tibble() %>%  # Drop tsibble structure and index
+  mutate(interval_hour = floor_date(interval_utc, unit = "hour")) %>%
+  group_by(site_id, interval_hour) %>%
+  summarize(kW = sum(kW, na.rm = TRUE), .groups = "drop")
+
+hourly_aggregated
+
+
+
+
+
+
+
+```
+
+``` R
+
+```
+
+New Data Sets
+
+```{r}
+# Hourly (no change)
+site1_hourly <- site1
+
+site1a <- as_tibble(site1)
+
+site1_daily <- site1a |>
+  mutate(interval_day = as_date(interval_hour)) |>
+  group_by(site_id, interval_day) |>
+  summarise(mean_kW = mean(kW, na.rm = TRUE), .groups = "drop") |>
+  as_tsibble(index = interval_day)
+
+site1_weekly <- site1a |>
+  mutate(interval_week = yearweek(interval_hour)) |>
+  group_by(site_id, interval_week) |>
+  summarise(mean_kW = mean(kW, na.rm = TRUE), .groups = "drop") |>
+  as_tsibble(index = interval_week)
+
+site1_monthly <- site1a |>
+  mutate(interval_month = yearmonth(interval_hour)) |>
+  group_by(site_id, interval_month) |>
+  summarise(mean_kW = mean(kW, na.rm = TRUE), .groups = "drop") |>
+  as_tsibble(index = interval_month)
+
+site1_yearly <- site1a |>
+  mutate(interval_year = year(interval_hour)) |>
+  group_by(site_id, interval_year) |>
+  summarise(mean_kW = mean(kW, na.rm = TRUE), .groups = "drop") |>
+  as_tsibble(index = interval_year)
+
+
+site1_hourly |>
+  autoplot(kW)
+site1_daily |>
+  autoplot(mean_kW) 
+site1_weekly |>
+  autoplot(mean_kW) 
+site1_monthly |>
+  autoplot(mean_kW) 
+site1_yearly |>
+  autoplot(mean_kW) 
+
+
+site1_hourly |>
+  gg_season(kW) +
+  labs(title = "Hourly kW Usage Patterns",
+       y = "kW",
+       x = "Month ")
+
+site1_hourly |>
+  gg_season(kW, period = "day") +
+  labs(title = "Hourly kW Usage Patterns",
+       y = "kW",
+       x = "Hour of Day")
+
+site1_hourly |>
+  gg_season(kW, period = "week") +
+  labs(title = "Hourly kW Usage Patterns",
+       y = "kW",
+       x = "Hour of Week")
+
+site1_hourly |>
+  gg_season(kW, period = "month") +
+  labs(title = "Hourly kW Usage Patterns",
+       y = "kW",
+       x = "Hour of Month")
+
+site1_hourly |>
+  gg_season(kW, period = "year") +
+  labs(title = "Hourly kW Usage Patterns",
+       y = "kW",
+       x = "Hour of Year")
+
+site1_daily |>
+  gg_season(mean_kW) +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of ")
+
+site1_daily |>
+  gg_season(mean_kW, period = "week") +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of Week")
+
+site1_daily |>
+  gg_season(mean_kW, period = "month") +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of Month")
+
+site1_daily |>
+  gg_season(mean_kW, period = "year") +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of Year")
+
+site1_weekly |>
+  gg_season(mean_kW) +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of ")
+
+
+site1_weekly |>
+  gg_season(mean_kW, period = "year") +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of Year")
+
+
+site1_monthly |>
+  gg_season(mean_kW, period = "year") +
+  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+       y = "Mean Daily kW",
+       x = "Day of year")
+```
