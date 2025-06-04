@@ -167,12 +167,6 @@ site1_yearly |>
 
 
 site1_hourly |>
-  gg_season(kW) +
-  labs(title = "Hourly kW Usage Patterns",
-       y = "kW",
-       x = "Month ")
-
-site1_hourly |>
   gg_season(kW, period = "day") +
   labs(title = "Hourly kW Usage Patterns",
        y = "kW",
@@ -180,27 +174,27 @@ site1_hourly |>
 
 site1_hourly |>
   gg_season(kW, period = "week") +
-  labs(title = "Hourly kW Usage Patterns",
+  labs(title = "Hourly kW Usage Patterns (by Week)",
        y = "kW",
-       x = "Hour of Week")
+       x = "Day of Week")
 
 site1_hourly |>
   gg_season(kW, period = "month") +
-  labs(title = "Hourly kW Usage Patterns",
+  labs(title = "Hourly kW Usage Patterns (by Month)",
        y = "kW",
-       x = "Hour of Month")
+       x = "Week of Month??")
 
 site1_hourly |>
   gg_season(kW, period = "year") +
   labs(title = "Hourly kW Usage Patterns",
        y = "kW",
-       x = "Hour of Year")
+       x = "Month of Year")
 
 site1_daily |>
   gg_season(mean_kW) +
   labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
        y = "Mean Daily kW",
-       x = "Day of ")
+       x = "Month of Year")
 
 site1_daily |>
   gg_season(mean_kW, period = "week") +
@@ -210,33 +204,27 @@ site1_daily |>
 
 site1_daily |>
   gg_season(mean_kW, period = "month") +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+  labs(title = "Seasonal Plot of Daily kW Usage (by Month)",
        y = "Mean Daily kW",
        x = "Day of Month")
 
 site1_daily |>
   gg_season(mean_kW, period = "year") +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+  labs(title = "Seasonal Plot of Daily kW Usage (by Year)",
        y = "Mean Daily kW",
-       x = "Day of Year")
-
-site1_weekly |>
-  gg_season(mean_kW) +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
-       y = "Mean Daily kW",
-       x = "Day of ")
+       x = "Week of Month??")
 
 
 site1_weekly |>
   gg_season(mean_kW, period = "year") +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+  labs(title = "Seasonal Plot of Weekly kW Usage (by Week)",
        y = "Mean Daily kW",
-       x = "Day of Year")
+       x = "Month of Year")
 
 
 site1_monthly |>
   gg_season(mean_kW, period = "year") +
-  labs(title = "Seasonal Plot of Daily kW Usage (by Week)",
+  labs(title = "Seasonal Plot of Monthy kW Usage (by Week)",
        y = "Mean Daily kW",
-       x = "Day of year")
+       x = "Month of year")
 ```
