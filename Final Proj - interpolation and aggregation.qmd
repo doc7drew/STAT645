@@ -124,7 +124,8 @@ site1 <- hourly_aggregated |>
   filter(site_id == 1)
 
 # Hourly (no change)
-site1_hourly <- site1
+site1_hourly <- site1 |>
+  as_tsibble(index = interval_hour)
 
 site1a <- as_tibble(site1)
 
